@@ -108,7 +108,7 @@ export default function ContractorNetwork({ nodes, links, loading }: NetworkProp
             if (!event.active) simulation.alphaTarget(0);
             d.fx = null;
             d.fy = null;
-          })
+          }) as any
       );
 
     const label = g
