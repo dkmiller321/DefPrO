@@ -234,19 +234,31 @@ class USASpendingClient:
         fiscal_year: int,
         max_records: int | None = None,
     ) -> list[dict]:
-        """Get all contract awards for a specific agency and fiscal year."""
+        """Get all contract awards for a specific agency and fiscal year.
+
+        Automatically tries subtier first (for agencies like DARPA, MDA),
+        then falls back to toptier (for agencies like Department of the Navy).
+        """
         fy_start = f"{fiscal_year - 1}-10-01"
         fy_end = f"{fiscal_year}-09-30"
 
-        filters = AwardFilters(
-            agencies=[{
-                "type": "awarding",
-                "tier": "toptier",
-                "name": agency_name,
-            }],
-            time_period=[{
-                "start_date": fy_start,
-                "end_date": fy_end,
-            }],
-        )
-        return self.search_awards_all(filters, max_records=max_records)
+        # Try subtier first (most specific — DARPA, MDA, etc.)
+        for tier in ("subtier", "toptier"):
+            filters = AwardFilters(
+                agencies=[{
+                    "type": "awarding",
+                    "tier": tier,
+                    "name": agency_name,
+                }],
+                time_period=[{
+                    "start_date": fy_start,
+                    "end_date": fy_end,
+                }],
+            )
+            results = self.search_awards_all(filters, max_records=max_records)
+            if results:
+                logger.info("Found %d results using tier=%s", len(results), tier)
+                return results
+
+        logger.warning("No results found for '%s' at any tier", agency_name)
+        return []
