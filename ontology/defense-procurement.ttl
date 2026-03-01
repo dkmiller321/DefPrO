@@ -1,0 +1,504 @@
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix dc:   <http://purl.org/dc/elements/1.1/> .
+@prefix obo:  <http://purl.obolibrary.org/obo/> .
+@prefix cco:  <http://www.ontologyrepository.com/CommonCoreOntologies/> .
+@prefix dp:   <http://defenseprocurement.io/ontology#> .
+
+# =============================================================================
+# Defense Procurement Ontology
+# =============================================================================
+#
+# A domain ontology for US federal defense procurement intelligence,
+# built on BFO 2020 (ISO 21838) and Common Core Ontologies.
+#
+# Namespace: http://defenseprocurement.io/ontology#
+# =============================================================================
+
+<http://defenseprocurement.io/ontology>
+    a owl:Ontology ;
+    dc:title "Defense Procurement Ontology" ;
+    dc:description "An ontology for modeling US federal defense procurement contracts, contractors, capabilities, and teaming relationships." ;
+    dc:creator "DefPrO Project" ;
+    owl:versionInfo "1.0.0" ;
+    owl:imports <http://purl.obolibrary.org/obo/bfo.owl> .
+
+# =============================================================================
+# BFO Reference Classes (declared here for self-containment)
+# =============================================================================
+# BFO_0000001 - Entity
+# BFO_0000002 - Continuant
+# BFO_0000003 - Occurrent
+# BFO_0000004 - IndependentContinuant
+# BFO_0000015 - Process
+# BFO_0000016 - Disposition
+# BFO_0000017 - RealizableEntity
+# BFO_0000019 - Quality
+# BFO_0000020 - SpecificallyDependentContinuant
+# BFO_0000023 - Role
+# BFO_0000029 - Site
+# BFO_0000031 - GenericallyDependentContinuant
+# BFO_0000040 - MaterialEntity
+
+# Declare BFO classes for standalone use without full BFO import
+obo:BFO_0000001 a owl:Class .
+obo:BFO_0000002 a owl:Class ; rdfs:subClassOf obo:BFO_0000001 .
+obo:BFO_0000003 a owl:Class ; rdfs:subClassOf obo:BFO_0000001 .
+obo:BFO_0000004 a owl:Class ; rdfs:subClassOf obo:BFO_0000002 .
+obo:BFO_0000015 a owl:Class ; rdfs:subClassOf obo:BFO_0000003 .
+obo:BFO_0000016 a owl:Class ; rdfs:subClassOf obo:BFO_0000017 .
+obo:BFO_0000017 a owl:Class ; rdfs:subClassOf obo:BFO_0000020 .
+obo:BFO_0000019 a owl:Class ; rdfs:subClassOf obo:BFO_0000020 .
+obo:BFO_0000020 a owl:Class ; rdfs:subClassOf obo:BFO_0000002 .
+obo:BFO_0000023 a owl:Class ; rdfs:subClassOf obo:BFO_0000017 .
+obo:BFO_0000029 a owl:Class ; rdfs:subClassOf obo:BFO_0000004 .
+obo:BFO_0000031 a owl:Class ; rdfs:subClassOf obo:BFO_0000002 .
+obo:BFO_0000040 a owl:Class ; rdfs:subClassOf obo:BFO_0000004 .
+
+# CCO reference classes
+cco:Agent a owl:Class ; rdfs:subClassOf obo:BFO_0000040 .
+cco:Organization a owl:Class ; rdfs:subClassOf cco:Agent .
+cco:Artifact a owl:Class ; rdfs:subClassOf obo:BFO_0000040 .
+cco:InformationBearingEntity a owl:Class ; rdfs:subClassOf obo:BFO_0000031 .
+
+# =============================================================================
+# CORE ENTITY CLASSES
+# =============================================================================
+
+# --- Contractor hierarchy ---
+dp:Contractor a owl:Class ;
+    rdfs:subClassOf cco:Organization ;
+    rdfs:label "Contractor" ;
+    rdfs:comment "An organization that performs work under a federal contract." .
+
+dp:PrimeContractor a owl:Class ;
+    rdfs:subClassOf dp:Contractor ;
+    rdfs:label "Prime Contractor" ;
+    rdfs:comment "A contractor that holds the primary contract with the government agency." .
+
+dp:Subcontractor a owl:Class ;
+    rdfs:subClassOf dp:Contractor ;
+    rdfs:label "Subcontractor" ;
+    rdfs:comment "A contractor that performs work under a subcontract to a prime contractor." .
+
+dp:SmallBusiness a owl:Class ;
+    rdfs:subClassOf dp:Contractor ;
+    rdfs:label "Small Business" ;
+    rdfs:comment "A contractor classified as a small business under SBA size standards." ;
+    owl:equivalentClass [
+        a owl:Class ;
+        owl:intersectionOf (
+            dp:Contractor
+            [ a owl:Restriction ;
+              owl:onProperty dp:isSmallBusiness ;
+              owl:hasValue true ]
+        )
+    ] .
+
+# --- Government Agency hierarchy ---
+dp:GovernmentAgency a owl:Class ;
+    rdfs:subClassOf cco:Organization ;
+    rdfs:label "Government Agency" ;
+    rdfs:comment "A US federal government agency involved in procurement." .
+
+dp:ContractingOffice a owl:Class ;
+    rdfs:subClassOf dp:GovernmentAgency ;
+    rdfs:label "Contracting Office" ;
+    rdfs:comment "A government office responsible for awarding and administering contracts." .
+
+dp:ProgramOffice a owl:Class ;
+    rdfs:subClassOf dp:GovernmentAgency ;
+    rdfs:label "Program Office" ;
+    rdfs:comment "A government office responsible for managing a specific program." .
+
+# --- Place of Performance ---
+dp:PlaceOfPerformance a owl:Class ;
+    rdfs:subClassOf obo:BFO_0000029 ;
+    rdfs:label "Place of Performance" ;
+    rdfs:comment "A geographic location where contract work is performed." .
+
+# --- Program ---
+dp:Program a owl:Class ;
+    rdfs:subClassOf cco:InformationBearingEntity ;
+    rdfs:label "Program" ;
+    rdfs:comment "A defense acquisition program under which contracts are funded." .
+
+# =============================================================================
+# CAPABILITY CLASSES
+# =============================================================================
+
+dp:TechnicalCapability a owl:Class ;
+    rdfs:subClassOf obo:BFO_0000016 ;
+    rdfs:label "Technical Capability" ;
+    rdfs:comment "A disposition of a contractor to perform a specific type of technical work." .
+
+dp:ElectronicWarfare a owl:Class ;
+    rdfs:subClassOf dp:TechnicalCapability ;
+    rdfs:label "Electronic Warfare" ;
+    rdfs:comment "Capabilities in EW, SIGINT, jamming, and electromagnetic spectrum operations." .
+
+dp:C4ISR a owl:Class ;
+    rdfs:subClassOf dp:TechnicalCapability ;
+    rdfs:label "C4ISR" ;
+    rdfs:comment "Command, Control, Communications, Computers, Intelligence, Surveillance, and Reconnaissance." .
+
+dp:AutonomousSystems a owl:Class ;
+    rdfs:subClassOf dp:TechnicalCapability ;
+    rdfs:label "Autonomous Systems" ;
+    rdfs:comment "Unmanned aerial, ground, and maritime systems, robotics, and autonomy." .
+
+dp:CyberSecurity a owl:Class ;
+    rdfs:subClassOf dp:TechnicalCapability ;
+    rdfs:label "Cyber Security" ;
+    rdfs:comment "Cybersecurity, information assurance, zero trust architecture, and defensive cyber operations." .
+
+dp:SpaceSystems a owl:Class ;
+    rdfs:subClassOf dp:TechnicalCapability ;
+    rdfs:label "Space Systems" ;
+    rdfs:comment "Satellite systems, space launch, space domain awareness, and orbital operations." .
+
+dp:AIandML a owl:Class ;
+    rdfs:subClassOf dp:TechnicalCapability ;
+    rdfs:label "AI and Machine Learning" ;
+    rdfs:comment "Artificial intelligence, machine learning, deep learning, and neural network systems." .
+
+dp:MissileDefense a owl:Class ;
+    rdfs:subClassOf dp:TechnicalCapability ;
+    rdfs:label "Missile Defense" ;
+    rdfs:comment "Missile defense systems, interceptors, and ballistic missile defense." .
+
+dp:Logistics a owl:Class ;
+    rdfs:subClassOf dp:TechnicalCapability ;
+    rdfs:label "Logistics" ;
+    rdfs:comment "Supply chain management, sustainment, depot maintenance, and logistics systems." .
+
+dp:TrainingSimulation a owl:Class ;
+    rdfs:subClassOf dp:TechnicalCapability ;
+    rdfs:label "Training and Simulation" ;
+    rdfs:comment "Training systems, simulators, virtual/augmented reality training, and live-virtual-constructive environments." .
+
+dp:Hypersonics a owl:Class ;
+    rdfs:subClassOf dp:TechnicalCapability ;
+    rdfs:label "Hypersonics" ;
+    rdfs:comment "Hypersonic weapons, scramjet engines, boost-glide vehicles, and thermal protection systems." .
+
+dp:DirectedEnergy a owl:Class ;
+    rdfs:subClassOf dp:TechnicalCapability ;
+    rdfs:label "Directed Energy" ;
+    rdfs:comment "High-energy lasers, high-power microwave weapons, and directed energy systems." .
+
+dp:QuantumTechnology a owl:Class ;
+    rdfs:subClassOf dp:TechnicalCapability ;
+    rdfs:label "Quantum Technology" ;
+    rdfs:comment "Quantum computing, quantum sensing, quantum communications, and post-quantum cryptography." .
+
+dp:Biotechnology a owl:Class ;
+    rdfs:subClassOf dp:TechnicalCapability ;
+    rdfs:label "Biotechnology" ;
+    rdfs:comment "Synthetic biology, biodefense, biosurveillance, and bio-manufacturing." .
+
+# =============================================================================
+# EVENT / PROCESS CLASSES
+# =============================================================================
+
+dp:ContractAward a owl:Class ;
+    rdfs:subClassOf obo:BFO_0000015 ;
+    rdfs:label "Contract Award" ;
+    rdfs:comment "The process of awarding a federal contract to a contractor." .
+
+dp:ContractModification a owl:Class ;
+    rdfs:subClassOf obo:BFO_0000015 ;
+    rdfs:label "Contract Modification" ;
+    rdfs:comment "A modification to an existing contract, changing scope, funding, or terms." .
+
+dp:CompetitionProcess a owl:Class ;
+    rdfs:subClassOf obo:BFO_0000015 ;
+    rdfs:label "Competition Process" ;
+    rdfs:comment "The competitive acquisition process used to select a contractor." .
+
+# =============================================================================
+# INFORMATION ENTITY CLASSES
+# =============================================================================
+
+dp:ContractDocument a owl:Class ;
+    rdfs:subClassOf cco:InformationBearingEntity ;
+    rdfs:label "Contract Document" ;
+    rdfs:comment "A document associated with a federal contract." .
+
+dp:SBIRAward a owl:Class ;
+    rdfs:subClassOf cco:InformationBearingEntity ;
+    rdfs:label "SBIR Award" ;
+    rdfs:comment "A Small Business Innovation Research award." .
+
+dp:CapabilityStatement a owl:Class ;
+    rdfs:subClassOf cco:InformationBearingEntity ;
+    rdfs:label "Capability Statement" ;
+    rdfs:comment "A contractor's capability statement document." .
+
+# =============================================================================
+# CLASSIFICATION CLASSES
+# =============================================================================
+
+dp:NAICSCode a owl:Class ;
+    rdfs:subClassOf cco:InformationBearingEntity ;
+    rdfs:label "NAICS Code" ;
+    rdfs:comment "A North American Industry Classification System code." .
+
+dp:PSCCode a owl:Class ;
+    rdfs:subClassOf cco:InformationBearingEntity ;
+    rdfs:label "PSC Code" ;
+    rdfs:comment "A Product and Service Code used in federal procurement." .
+
+dp:SetAsideType a owl:Class ;
+    rdfs:subClassOf cco:InformationBearingEntity ;
+    rdfs:label "Set-Aside Type" ;
+    rdfs:comment "A type of small business set-aside designation." .
+
+dp:CompetitionType a owl:Class ;
+    rdfs:subClassOf cco:InformationBearingEntity ;
+    rdfs:label "Competition Type" ;
+    rdfs:comment "The type of competition used in the procurement." .
+
+# =============================================================================
+# OBJECT PROPERTIES
+# =============================================================================
+
+dp:awardedTo a owl:ObjectProperty ;
+    rdfs:domain dp:ContractAward ;
+    rdfs:range dp:Contractor ;
+    rdfs:label "awarded to" ;
+    rdfs:comment "Relates a contract award to the contractor that received it." .
+
+dp:awardedBy a owl:ObjectProperty ;
+    rdfs:domain dp:ContractAward ;
+    rdfs:range dp:GovernmentAgency ;
+    rdfs:label "awarded by" ;
+    rdfs:comment "Relates a contract award to the agency that issued it." .
+
+dp:hasSubcontractor a owl:ObjectProperty ;
+    rdfs:domain dp:PrimeContractor ;
+    rdfs:range dp:Subcontractor ;
+    rdfs:label "has subcontractor" ;
+    rdfs:comment "Relates a prime contractor to a subcontractor." ;
+    owl:inverseOf dp:subcontractorOf .
+
+dp:subcontractorOf a owl:ObjectProperty ;
+    rdfs:domain dp:Subcontractor ;
+    rdfs:range dp:PrimeContractor ;
+    rdfs:label "subcontractor of" ;
+    rdfs:comment "Relates a subcontractor to its prime contractor." .
+
+dp:performedAt a owl:ObjectProperty ;
+    rdfs:domain dp:ContractAward ;
+    rdfs:range dp:PlaceOfPerformance ;
+    rdfs:label "performed at" ;
+    rdfs:comment "Relates a contract award to its place of performance." .
+
+dp:hasCapability a owl:ObjectProperty ;
+    rdfs:domain dp:Contractor ;
+    rdfs:range dp:TechnicalCapability ;
+    rdfs:label "has capability" ;
+    rdfs:comment "Relates a contractor to a technical capability it possesses." .
+
+dp:requiresCapability a owl:ObjectProperty ;
+    rdfs:domain dp:ContractAward ;
+    rdfs:range dp:TechnicalCapability ;
+    rdfs:label "requires capability" ;
+    rdfs:comment "Relates a contract award to a technical capability it requires." .
+
+dp:demonstratesCapability a owl:ObjectProperty ;
+    rdfs:domain dp:SBIRAward ;
+    rdfs:range dp:TechnicalCapability ;
+    rdfs:label "demonstrates capability" ;
+    rdfs:comment "Relates an SBIR award to a capability the awardee demonstrated." .
+
+dp:classifiedAs a owl:ObjectProperty ;
+    rdfs:domain dp:ContractAward ;
+    rdfs:range dp:NAICSCode ;
+    rdfs:label "classified as" ;
+    rdfs:comment "Relates a contract award to its NAICS classification." .
+
+dp:hasPSCCode a owl:ObjectProperty ;
+    rdfs:domain dp:ContractAward ;
+    rdfs:range dp:PSCCode ;
+    rdfs:label "has PSC code" ;
+    rdfs:comment "Relates a contract award to its Product and Service Code." .
+
+dp:modifies a owl:ObjectProperty ;
+    rdfs:domain dp:ContractModification ;
+    rdfs:range dp:ContractAward ;
+    rdfs:label "modifies" ;
+    rdfs:comment "Relates a contract modification to the contract it modifies." .
+
+dp:fundedUnder a owl:ObjectProperty ;
+    rdfs:domain dp:ContractAward ;
+    rdfs:range dp:Program ;
+    rdfs:label "funded under" ;
+    rdfs:comment "Relates a contract award to the program that funds it." .
+
+dp:parentAgency a owl:ObjectProperty ;
+    rdfs:domain dp:GovernmentAgency ;
+    rdfs:range dp:GovernmentAgency ;
+    rdfs:label "parent agency" ;
+    rdfs:comment "Relates a sub-agency to its parent agency." .
+
+dp:primeOn a owl:ObjectProperty ;
+    rdfs:domain dp:Contractor ;
+    rdfs:range dp:ContractAward ;
+    rdfs:label "prime on" ;
+    rdfs:comment "Relates a contractor acting as prime to a contract award." .
+
+dp:subsOn a owl:ObjectProperty ;
+    rdfs:domain dp:Contractor ;
+    rdfs:range dp:ContractAward ;
+    rdfs:label "subs on" ;
+    rdfs:comment "Relates a contractor acting as subcontractor to a contract award." .
+
+dp:teamsWithOn a owl:ObjectProperty ;
+    rdfs:domain dp:Contractor ;
+    rdfs:range dp:Contractor ;
+    rdfs:label "teams with on" ;
+    rdfs:comment "Relates two contractors that team together." ;
+    a owl:SymmetricProperty .
+
+dp:inSupplyChainOf a owl:ObjectProperty, owl:TransitiveProperty ;
+    rdfs:domain dp:Contractor ;
+    rdfs:range dp:Contractor ;
+    rdfs:label "in supply chain of" ;
+    rdfs:comment "Transitive supply chain relationship — if A subs for B, and B subs for C, then A is in C's supply chain." .
+
+# =============================================================================
+# DATA PROPERTIES
+# =============================================================================
+
+dp:contractNumber a owl:DatatypeProperty ;
+    rdfs:domain dp:ContractAward ;
+    rdfs:range xsd:string ;
+    rdfs:label "contract number" .
+
+dp:cageCode a owl:DatatypeProperty ;
+    rdfs:domain dp:Contractor ;
+    rdfs:range xsd:string ;
+    rdfs:label "CAGE code" .
+
+dp:ueiNumber a owl:DatatypeProperty ;
+    rdfs:domain dp:Contractor ;
+    rdfs:range xsd:string ;
+    rdfs:label "UEI number" .
+
+dp:isSmallBusiness a owl:DatatypeProperty ;
+    rdfs:domain dp:Contractor ;
+    rdfs:range xsd:boolean ;
+    rdfs:label "is small business" .
+
+dp:employeeCount a owl:DatatypeProperty ;
+    rdfs:domain dp:Contractor ;
+    rdfs:range xsd:integer ;
+    rdfs:label "employee count" .
+
+dp:annualRevenue a owl:DatatypeProperty ;
+    rdfs:domain dp:Contractor ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "annual revenue" .
+
+dp:awardDate a owl:DatatypeProperty ;
+    rdfs:domain dp:ContractAward ;
+    rdfs:range xsd:date ;
+    rdfs:label "award date" .
+
+dp:completionDate a owl:DatatypeProperty ;
+    rdfs:domain dp:ContractAward ;
+    rdfs:range xsd:date ;
+    rdfs:label "completion date" .
+
+dp:obligatedAmount a owl:DatatypeProperty ;
+    rdfs:domain dp:ContractAward ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "obligated amount" .
+
+dp:totalAwardValue a owl:DatatypeProperty ;
+    rdfs:domain dp:ContractAward ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "total award value" .
+
+dp:fiscalYear a owl:DatatypeProperty ;
+    rdfs:domain dp:ContractAward ;
+    rdfs:range xsd:gYear ;
+    rdfs:label "fiscal year" .
+
+dp:description a owl:DatatypeProperty ;
+    rdfs:domain dp:ContractAward ;
+    rdfs:range xsd:string ;
+    rdfs:label "description" .
+
+dp:competitionType a owl:DatatypeProperty ;
+    rdfs:domain dp:ContractAward ;
+    rdfs:range xsd:string ;
+    rdfs:label "competition type" .
+
+dp:setAsideType a owl:DatatypeProperty ;
+    rdfs:domain dp:ContractAward ;
+    rdfs:range xsd:string ;
+    rdfs:label "set-aside type" .
+
+dp:stateCode a owl:DatatypeProperty ;
+    rdfs:domain dp:PlaceOfPerformance ;
+    rdfs:range xsd:string ;
+    rdfs:label "state code" .
+
+dp:congressionalDistrict a owl:DatatypeProperty ;
+    rdfs:domain dp:PlaceOfPerformance ;
+    rdfs:range xsd:string ;
+    rdfs:label "congressional district" .
+
+dp:naicsCode a owl:DatatypeProperty ;
+    rdfs:domain dp:NAICSCode ;
+    rdfs:range xsd:string ;
+    rdfs:label "NAICS code value" .
+
+dp:naicsDescription a owl:DatatypeProperty ;
+    rdfs:domain dp:NAICSCode ;
+    rdfs:range xsd:string ;
+    rdfs:label "NAICS description" .
+
+dp:pscCode a owl:DatatypeProperty ;
+    rdfs:domain dp:PSCCode ;
+    rdfs:range xsd:string ;
+    rdfs:label "PSC code value" .
+
+dp:pscDescription a owl:DatatypeProperty ;
+    rdfs:domain dp:PSCCode ;
+    rdfs:range xsd:string ;
+    rdfs:label "PSC description" .
+
+dp:sbirTopic a owl:DatatypeProperty ;
+    rdfs:domain dp:SBIRAward ;
+    rdfs:range xsd:string ;
+    rdfs:label "SBIR topic" .
+
+# =============================================================================
+# OWL AXIOMS
+# =============================================================================
+
+# PrimeContractor and Subcontractor are NOT disjoint — a company can be both
+# on different contracts. This is explicitly not stated as disjoint.
+
+# Contractor must have at least one award relationship
+# (open world assumption means we don't enforce this as a strict constraint,
+# but it guides data validation)
+
+# Every ContractAward must be awarded to exactly one Contractor
+dp:ContractAward rdfs:subClassOf [
+    a owl:Restriction ;
+    owl:onProperty dp:awardedTo ;
+    owl:someValuesFrom dp:Contractor
+] .
+
+# Every ContractAward must be awarded by at least one GovernmentAgency
+dp:ContractAward rdfs:subClassOf [
+    a owl:Restriction ;
+    owl:onProperty dp:awardedBy ;
+    owl:someValuesFrom dp:GovernmentAgency
+] .

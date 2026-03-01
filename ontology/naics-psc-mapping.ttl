@@ -1,0 +1,91 @@
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix dp:   <http://defenseprocurement.io/ontology#> .
+@prefix data: <http://defenseprocurement.io/data#> .
+
+# =============================================================================
+# NAICS / PSC Code → Technical Capability Mapping
+# =============================================================================
+# Deterministic mapping rules used by the capability classifier (Layer 1).
+# These are reference individuals, not the complete data instances.
+# =============================================================================
+
+# --- PSC Code Reference Individuals ---
+
+data:psc_R4 a dp:PSCCode ;
+    dp:pscCode "R4" ;
+    dp:pscDescription "Professional, Administrative and Management Support - Electronics R&D" ;
+    rdfs:comment "Maps to: ElectronicWarfare, C4ISR" .
+
+data:psc_AC a dp:PSCCode ;
+    dp:pscCode "AC" ;
+    dp:pscDescription "Electronic Components" ;
+    rdfs:comment "Maps to: ElectronicWarfare" .
+
+data:psc_AA a dp:PSCCode ;
+    dp:pscCode "AA" ;
+    dp:pscDescription "Missiles" ;
+    rdfs:comment "Maps to: MissileDefense, Hypersonics" .
+
+data:psc_AJ a dp:PSCCode ;
+    dp:pscCode "AJ" ;
+    dp:pscDescription "Unmanned Aerial Vehicles" ;
+    rdfs:comment "Maps to: AutonomousSystems" .
+
+data:psc_D3 a dp:PSCCode ;
+    dp:pscCode "D3" ;
+    dp:pscDescription "IT and Telecom - Cyber Security" ;
+    rdfs:comment "Maps to: CyberSecurity, C4ISR" .
+
+data:psc_AG a dp:PSCCode ;
+    dp:pscCode "AG" ;
+    dp:pscDescription "Space Vehicles" ;
+    rdfs:comment "Maps to: SpaceSystems" .
+
+data:psc_U0 a dp:PSCCode ;
+    dp:pscCode "U0" ;
+    dp:pscDescription "Training Services" ;
+    rdfs:comment "Maps to: TrainingSimulation" .
+
+# --- NAICS Code Reference Individuals ---
+
+data:naics_541715 a dp:NAICSCode ;
+    dp:naicsCode "541715" ;
+    dp:naicsDescription "R&D in Physical, Engineering, and Life Sciences" ;
+    rdfs:comment "Broad R&D code - requires description analysis for sub-classification." .
+
+data:naics_518210 a dp:NAICSCode ;
+    dp:naicsCode "518210" ;
+    dp:naicsDescription "Data Processing, Hosting, and Related Services" ;
+    rdfs:comment "Maps to: CyberSecurity, C4ISR" .
+
+data:naics_334511 a dp:NAICSCode ;
+    dp:naicsCode "334511" ;
+    dp:naicsDescription "Search, Detection, Navigation, Guidance, Aeronautical Systems" ;
+    rdfs:comment "Maps to: SpaceSystems, C4ISR" .
+
+data:naics_336414 a dp:NAICSCode ;
+    dp:naicsCode "336414" ;
+    dp:naicsDescription "Guided Missile and Space Vehicle Manufacturing" ;
+    rdfs:comment "Maps to: MissileDefense, SpaceSystems, Hypersonics" .
+
+data:naics_541512 a dp:NAICSCode ;
+    dp:naicsCode "541512" ;
+    dp:naicsDescription "Computer Systems Design Services" ;
+    rdfs:comment "Maps to: CyberSecurity, AIandML, C4ISR" .
+
+data:naics_541330 a dp:NAICSCode ;
+    dp:naicsCode "541330" ;
+    dp:naicsDescription "Engineering Services" ;
+    rdfs:comment "Broad engineering code - requires description analysis." .
+
+data:naics_336411 a dp:NAICSCode ;
+    dp:naicsCode "336411" ;
+    dp:naicsDescription "Aircraft Manufacturing" ;
+    rdfs:comment "Maps to: AutonomousSystems (if unmanned)" .
+
+data:naics_541519 a dp:NAICSCode ;
+    dp:naicsCode "541519" ;
+    dp:naicsDescription "Other Computer Related Services" ;
+    rdfs:comment "Maps to: AIandML, CyberSecurity" .

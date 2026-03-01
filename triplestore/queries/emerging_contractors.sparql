@@ -1,0 +1,39 @@
+# Emerging Contractors
+# Business Question: Which contractors won their first-ever award in a new
+# capability area in the most recent fiscal year? These are companies
+# expanding into new markets — potential disruptors or acquisition targets.
+
+PREFIX dp: <http://defenseprocurement.io/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT
+    ?contractor
+    ?contractorName
+    ?newCapability
+    ?capabilityLabel
+    (SUM(?amount) AS ?totalNewCapSpend)
+    (COUNT(?award) AS ?awardCount)
+WHERE {
+    ?award a dp:ContractAward ;
+           dp:awardedTo ?contractor ;
+           dp:requiresCapability ?newCapability ;
+           dp:obligatedAmount ?amount ;
+           dp:fiscalYear ?fy .
+    ?contractor rdfs:label ?contractorName .
+    ?newCapability rdfs:label ?capabilityLabel .
+
+    # Only include the most recent fiscal year
+    FILTER(?fy = "2024"^^xsd:gYear)
+
+    # Exclude contractors who had this capability in prior years
+    FILTER NOT EXISTS {
+        ?oldAward a dp:ContractAward ;
+                  dp:awardedTo ?contractor ;
+                  dp:requiresCapability ?newCapability ;
+                  dp:fiscalYear ?oldFy .
+        FILTER(?oldFy < "2024"^^xsd:gYear)
+    }
+}
+GROUP BY ?contractor ?contractorName ?newCapability ?capabilityLabel
+ORDER BY DESC(?totalNewCapSpend)

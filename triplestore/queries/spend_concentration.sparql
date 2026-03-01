@@ -1,0 +1,55 @@
+# Agency Spend Concentration Risk
+# Business Question: For each capability area, what percentage of total spend
+# goes to the top contractor? High concentration = single-vendor dependency risk
+# and opportunity for competitors.
+
+PREFIX dp: <http://defenseprocurement.io/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT
+    ?capability
+    ?capabilityLabel
+    ?topContractor
+    ?topContractorName
+    ?topSpend
+    ?totalSpend
+    ((?topSpend / ?totalSpend * 100) AS ?concentrationPct)
+WHERE {
+    {
+        SELECT
+            ?capability
+            (MAX(?contractorSpend) AS ?topSpend)
+            (SUM(?contractorSpend) AS ?totalSpend)
+        WHERE {
+            {
+                SELECT ?capability ?contractor (SUM(?amount) AS ?contractorSpend)
+                WHERE {
+                    ?award a dp:ContractAward ;
+                           dp:requiresCapability ?capability ;
+                           dp:awardedTo ?contractor ;
+                           dp:obligatedAmount ?amount .
+                }
+                GROUP BY ?capability ?contractor
+            }
+        }
+        GROUP BY ?capability
+    }
+    ?award2 a dp:ContractAward ;
+            dp:requiresCapability ?capability ;
+            dp:awardedTo ?topContractor ;
+            dp:obligatedAmount ?amount2 .
+    ?capability rdfs:label ?capabilityLabel .
+    ?topContractor rdfs:label ?topContractorName .
+    {
+        SELECT ?capability ?topContractor (SUM(?amt) AS ?cs)
+        WHERE {
+            ?a dp:requiresCapability ?capability ;
+               dp:awardedTo ?topContractor ;
+               dp:obligatedAmount ?amt .
+        }
+        GROUP BY ?capability ?topContractor
+    }
+    FILTER(?cs = ?topSpend)
+}
+ORDER BY DESC(?concentrationPct)

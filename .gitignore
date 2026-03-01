@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Caches
+.cache/
+.pytest_cache/
+
+# Environment
+.env
+.venv/
+venv/
+
+# Output data
+output/
+
+# Node.js
+node_modules/
+dashboard/dist/
+mcp-server/dist/
+
+# IDE
+.vscode/
+.idea/
+
+# Docker
+fuseki-data/
+
+# OS
+.DS_Store
+Thumbs.db

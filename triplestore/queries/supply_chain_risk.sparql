@@ -1,0 +1,26 @@
+# Supply Chain Risk — Single Source Dependencies
+# Business Question: For each capability area, which have only 1-2 contractors?
+# These are critical single-source dependencies that represent supply chain risk
+# for the government and opportunity for new entrants.
+
+PREFIX dp: <http://defenseprocurement.io/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT
+    ?capability
+    ?capabilityLabel
+    (COUNT(DISTINCT ?contractor) AS ?contractorCount)
+    (SUM(?amount) AS ?totalSpend)
+    (GROUP_CONCAT(DISTINCT ?contractorName; separator=", ") AS ?contractors)
+WHERE {
+    ?award a dp:ContractAward ;
+           dp:requiresCapability ?capability ;
+           dp:awardedTo ?contractor ;
+           dp:obligatedAmount ?amount .
+    ?capability rdfs:label ?capabilityLabel .
+    ?contractor rdfs:label ?contractorName .
+}
+GROUP BY ?capability ?capabilityLabel
+HAVING (COUNT(DISTINCT ?contractor) <= 3)
+ORDER BY ASC(?contractorCount) DESC(?totalSpend)

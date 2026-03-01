@@ -1,0 +1,25 @@
+# Capability Gap Analysis
+# Business Question: Which technical capabilities have growing contract spend
+# but a shrinking contractor base? These are markets where demand exceeds
+# supply — prime territory for new entrants or acquisitions.
+
+PREFIX dp: <http://defenseprocurement.io/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT
+    ?capability
+    ?capabilityLabel
+    ?fiscalYear
+    (COUNT(DISTINCT ?contractor) AS ?contractorCount)
+    (SUM(?amount) AS ?totalSpend)
+WHERE {
+    ?award a dp:ContractAward ;
+           dp:requiresCapability ?capability ;
+           dp:awardedTo ?contractor ;
+           dp:obligatedAmount ?amount ;
+           dp:fiscalYear ?fiscalYear .
+    ?capability rdfs:label ?capabilityLabel .
+}
+GROUP BY ?capability ?capabilityLabel ?fiscalYear
+ORDER BY ?capabilityLabel ?fiscalYear

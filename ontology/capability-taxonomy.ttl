@@ -1,0 +1,79 @@
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix dp:   <http://defenseprocurement.io/ontology#> .
+
+# =============================================================================
+# Technical Capability Taxonomy
+# =============================================================================
+# Hierarchical classification of defense technical capabilities.
+# Used by the capability classifier to label contract awards.
+# =============================================================================
+
+# --- Electronic Warfare subcapabilities ---
+dp:SIGINT a owl:Class ;
+    rdfs:subClassOf dp:ElectronicWarfare ;
+    rdfs:label "SIGINT" ;
+    rdfs:comment "Signals intelligence collection and processing." .
+
+dp:ElectronicAttack a owl:Class ;
+    rdfs:subClassOf dp:ElectronicWarfare ;
+    rdfs:label "Electronic Attack" ;
+    rdfs:comment "Jamming, spoofing, and electronic countermeasures." .
+
+dp:ElectronicProtection a owl:Class ;
+    rdfs:subClassOf dp:ElectronicWarfare ;
+    rdfs:label "Electronic Protection" ;
+    rdfs:comment "Electronic counter-countermeasures and spectrum management." .
+
+# --- C4ISR subcapabilities ---
+dp:CommandAndControl a owl:Class ;
+    rdfs:subClassOf dp:C4ISR ;
+    rdfs:label "Command and Control" ;
+    rdfs:comment "Battle management, C2 systems, and decision support." .
+
+dp:ISR a owl:Class ;
+    rdfs:subClassOf dp:C4ISR ;
+    rdfs:label "ISR" ;
+    rdfs:comment "Intelligence, surveillance, and reconnaissance platforms and sensors." .
+
+dp:Communications a owl:Class ;
+    rdfs:subClassOf dp:C4ISR ;
+    rdfs:label "Communications" ;
+    rdfs:comment "Tactical and strategic communications systems." .
+
+# --- Autonomous Systems subcapabilities ---
+dp:UnmannedAerialSystems a owl:Class ;
+    rdfs:subClassOf dp:AutonomousSystems ;
+    rdfs:label "Unmanned Aerial Systems" ;
+    rdfs:comment "UAVs, drones, and unmanned aerial platforms." .
+
+dp:UnmannedGroundSystems a owl:Class ;
+    rdfs:subClassOf dp:AutonomousSystems ;
+    rdfs:label "Unmanned Ground Systems" ;
+    rdfs:comment "UGVs and autonomous ground vehicles." .
+
+dp:UnmannedMaritimeSystems a owl:Class ;
+    rdfs:subClassOf dp:AutonomousSystems ;
+    rdfs:label "Unmanned Maritime Systems" ;
+    rdfs:comment "UUVs, USVs, and autonomous maritime platforms." .
+
+dp:Robotics a owl:Class ;
+    rdfs:subClassOf dp:AutonomousSystems ;
+    rdfs:label "Robotics" ;
+    rdfs:comment "Military robotics and human-robot teaming." .
+
+# --- AI/ML subcapabilities ---
+dp:ComputerVision a owl:Class ;
+    rdfs:subClassOf dp:AIandML ;
+    rdfs:label "Computer Vision" ;
+    rdfs:comment "Image recognition, object detection, and visual processing." .
+
+dp:NaturalLanguageProcessing a owl:Class ;
+    rdfs:subClassOf dp:AIandML ;
+    rdfs:label "Natural Language Processing" ;
+    rdfs:comment "Text analysis, machine translation, and language understanding." .
+
+dp:PredictiveAnalytics a owl:Class ;
+    rdfs:subClassOf dp:AIandML ;
+    rdfs:label "Predictive Analytics" ;
+    rdfs:comment "Predictive modeling, forecasting, and decision analytics." .

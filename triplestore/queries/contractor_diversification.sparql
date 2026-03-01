@@ -1,0 +1,25 @@
+# Contractor Capability Diversification
+# Business Question: Which contractors are expanding into new capability areas
+# vs. deepening existing ones? Predicts market moves — which companies are
+# positioning for new domains.
+
+PREFIX dp: <http://defenseprocurement.io/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT
+    ?contractor
+    ?contractorName
+    (COUNT(DISTINCT ?capability) AS ?totalCapabilities)
+    (SUM(?amount) AS ?totalSpend)
+    (GROUP_CONCAT(DISTINCT ?capLabel; separator=", ") AS ?capabilities)
+WHERE {
+    ?award a dp:ContractAward ;
+           dp:awardedTo ?contractor ;
+           dp:requiresCapability ?capability ;
+           dp:obligatedAmount ?amount .
+    ?contractor rdfs:label ?contractorName .
+    ?capability rdfs:label ?capLabel .
+}
+GROUP BY ?contractor ?contractorName
+ORDER BY DESC(?totalCapabilities)

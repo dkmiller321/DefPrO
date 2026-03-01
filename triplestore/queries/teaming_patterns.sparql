@@ -1,0 +1,30 @@
+# Hidden Teaming Patterns
+# Business Question: Show me all contractors that have received awards in the
+# same capability area from 3+ different agencies. These are versatile players
+# with broad reach across the defense establishment.
+
+PREFIX dp: <http://defenseprocurement.io/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT
+    ?contractor
+    ?contractorName
+    ?capability
+    ?capabilityLabel
+    (COUNT(DISTINCT ?agency) AS ?agencyCount)
+    (GROUP_CONCAT(DISTINCT ?agencyName; separator=", ") AS ?agencies)
+    (SUM(?amount) AS ?totalValue)
+WHERE {
+    ?award a dp:ContractAward ;
+           dp:requiresCapability ?capability ;
+           dp:awardedTo ?contractor ;
+           dp:awardedBy ?agency ;
+           dp:obligatedAmount ?amount .
+    ?contractor rdfs:label ?contractorName .
+    ?capability rdfs:label ?capabilityLabel .
+    ?agency rdfs:label ?agencyName .
+}
+GROUP BY ?contractor ?contractorName ?capability ?capabilityLabel
+HAVING (COUNT(DISTINCT ?agency) >= 2)
+ORDER BY DESC(?agencyCount) ?capabilityLabel

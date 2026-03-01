@@ -1,0 +1,31 @@
+# SBIR-to-Production Pipeline
+# Business Question: Which SBIR awardees have also won production-scale contracts
+# (> $1M) in the same capability area? Shows which startups are crossing the
+# "valley of death" from R&D to production — gold for investors and BD teams.
+
+PREFIX dp: <http://defenseprocurement.io/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT
+    ?contractor
+    ?contractorName
+    ?capability
+    ?capabilityLabel
+    ?sbirTopic
+    ?productionAward
+    ?prodAmount
+WHERE {
+    ?sbir a dp:SBIRAward ;
+          dp:awardedTo ?contractor ;
+          dp:demonstratesCapability ?capability ;
+          dp:sbirTopic ?sbirTopic .
+    ?productionAward a dp:ContractAward ;
+                     dp:awardedTo ?contractor ;
+                     dp:requiresCapability ?capability ;
+                     dp:obligatedAmount ?prodAmount .
+    ?contractor rdfs:label ?contractorName .
+    ?capability rdfs:label ?capabilityLabel .
+    FILTER(?prodAmount > 1000000)
+}
+ORDER BY DESC(?prodAmount)
