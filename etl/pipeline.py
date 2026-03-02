@@ -5,6 +5,7 @@ import json
 import logging
 import sys
 from pathlib import Path
+from urllib.parse import quote
 
 import requests
 from rdflib import Graph
@@ -12,6 +13,7 @@ from rdflib import Graph
 from etl.capability_classifier import CapabilityClassifier
 from etl.config import (
     FUSEKI_ENDPOINT,
+    FUSEKI_ADMIN_PASSWORD,
     FUSEKI_UPLOAD_CHUNK_SIZE,
     DATA_NAMESPACE,
 )
@@ -120,10 +122,11 @@ class Pipeline:
 
         slug = agency.lower().replace(" ", "_")
         named_graph = f"{DATA_NAMESPACE}{slug}/fy{fiscal_year}"
-        gsp_url = f"{self.fuseki_endpoint}/data?graph={named_graph}"
+        gsp_url = f"{self.fuseki_endpoint}/data?graph={quote(named_graph, safe='')}"
 
         logger.info("[LOAD] Uploading to Fuseki graph: %s", named_graph)
 
+        auth = ("admin", FUSEKI_ADMIN_PASSWORD)
         ttl_data = graph.serialize(format="turtle")
         if isinstance(ttl_data, str):
             ttl_bytes = ttl_data.encode("utf-8")
@@ -137,6 +140,7 @@ class Pipeline:
                 gsp_url,
                 data=ttl_bytes,
                 headers={"Content-Type": "text/turtle"},
+                auth=auth,
                 timeout=120,
             )
             resp.raise_for_status()
@@ -162,6 +166,7 @@ class Pipeline:
                     gsp_url,
                     data=chunk_data,
                     headers={"Content-Type": "text/turtle"},
+                    auth=auth,
                     timeout=120,
                 )
                 resp.raise_for_status()

@@ -9,7 +9,6 @@ services:
       JVM_ARGS: "-Xmx2g -Xms1g"
     volumes:
       - fuseki-data:/fuseki
-      - ./triplestore/fuseki-config.ttl:/fuseki/configuration/procurement.ttl:ro
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3030/$/ping"]
