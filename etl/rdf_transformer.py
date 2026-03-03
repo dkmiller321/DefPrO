@@ -16,6 +16,111 @@ DATA = Namespace("http://defenseprocurement.io/data#")
 OBO = Namespace("http://purl.obolibrary.org/obo/")
 CCO = Namespace("http://www.ontologyrepository.com/CommonCoreOntologies/")
 
+# --- Parent company normalization ---
+# Large defense companies register multiple UEIs for divisions/subsidiaries.
+# This map normalizes variant names to a single canonical name so they appear
+# as one entity in the graph. The canonical name is the key.
+PARENT_COMPANY_ALIASES: dict[str, list[str]] = {
+    "LOCKHEED MARTIN CORPORATION": [
+        "LOCKHEED MARTIN CORP",
+        "LOCKHEED MARTIN CORP.",
+        "LOCKHEED MARTIN ROTARY AND MISSION SYSTEMS",
+        "LOCKHEED MARTIN AERONAUTICS COMPANY",
+        "LOCKHEED MARTIN MISSILES AND FIRE CONTROL",
+        "LOCKHEED MARTIN SPACE",
+        "LOCKHEED MARTIN INFORMATION SYSTEMS & GLOBAL SOLUTIONS",
+        "SIKORSKY AIRCRAFT CORPORATION",  # LM subsidiary
+    ],
+    "THE BOEING COMPANY": [
+        "BOEING COMPANY, THE",
+        "BOEING CO",
+        "BOEING COMPANY",
+        "BOEING DEFENSE, SPACE & SECURITY",
+    ],
+    "RTX CORPORATION": [
+        "RAYTHEON COMPANY",
+        "RAYTHEON TECHNOLOGIES CORPORATION",
+        "RAYTHEON MISSILES & DEFENSE",
+        "RAYTHEON INTELLIGENCE & SPACE",
+        "RAYTHEON BBN TECHNOLOGIES CORP",
+        "RAYTHEON BBN TECHNOLOGIES CORP.",
+        "PRATT & WHITNEY",
+        "PRATT AND WHITNEY",
+        "COLLINS AEROSPACE",
+    ],
+    "NORTHROP GRUMMAN CORPORATION": [
+        "NORTHROP GRUMMAN SYSTEMS CORPORATION",
+        "NORTHROP GRUMMAN SYSTEMS CORP",
+        "NORTHROP GRUMMAN MISSION SYSTEMS",
+        "NORTHROP GRUMMAN DEFENSE SYSTEMS",
+        "NORTHROP GRUMMAN INNOVATION SYSTEMS",
+        "NORTHROP GRUMMAN INFORMATION SYSTEMS",
+        "NORTHROP GRUMMAN SPACE SYSTEMS",
+    ],
+    "GENERAL DYNAMICS CORPORATION": [
+        "GENERAL DYNAMICS INFORMATION TECHNOLOGY, INC.",
+        "GENERAL DYNAMICS INFORMATION TECHNOLOGY INC.",
+        "GENERAL DYNAMICS LAND SYSTEMS INC",
+        "GENERAL DYNAMICS LAND SYSTEMS INC.",
+        "GENERAL DYNAMICS LAND SYSTEMS, INC.",
+        "GENERAL DYNAMICS MISSION SYSTEMS, INC.",
+        "GENERAL DYNAMICS MISSION SYSTEMS, INC",
+        "GENERAL DYNAMICS MISSION SYSTEMS",
+        "GENERAL DYNAMICS ORDNANCE AND TACTICAL SYSTEMS, INC.",
+        "GENERAL DYNAMICS ORDNANCE AND TACTICAL SYSTEMS",
+        "GENERAL DYNAMICS BATH IRON WORKS",
+        "GENERAL DYNAMICS-OTS, INC.",
+        "ELECTRIC BOAT CORPORATION",
+        "BATH IRON WORKS CORPORATION",
+    ],
+    "BAE SYSTEMS PLC": [
+        "BAE SYSTEMS INFORMATION & ELECTRONIC SYSTEMS INTEGRATION INC",
+        "BAE SYSTEMS INFORMATION AND ELECTRONIC SYSTEMS INTEGRATION INC",
+        "BAE SYSTEMS TECHNOLOGY SOLUTIONS & SERVICES INC.",
+        "BAE SYSTEMS LAND & ARMAMENTS L.P.",
+        "BAE SYSTEMS LAND & ARMAMENTS",
+    ],
+    "L3HARRIS TECHNOLOGIES, INC.": [
+        "L3HARRIS TECHNOLOGIES",
+        "L3 TECHNOLOGIES, INC.",
+        "L3HARRIS APPLIED DEFENSE SOLUTIONS",
+        "HARRIS CORPORATION",
+    ],
+    "HUNTINGTON INGALLS INDUSTRIES, INC.": [
+        "HUNTINGTON INGALLS INC",
+        "HUNTINGTON INGALLS INCORPORATED",
+        "HUNTINGTON INGALLS INDUSTRIES",
+    ],
+    "BOOZ ALLEN HAMILTON INC.": [
+        "BOOZ ALLEN HAMILTON INC",
+        "BOOZ ALLEN HAMILTON",
+    ],
+    "LEIDOS, INC.": [
+        "LEIDOS INC",
+        "LEIDOS INC.",
+        "LEIDOS, INC",
+        "LEIDOS INNOVATIONS CORPORATION",
+    ],
+    "GENERAL ATOMICS": [
+        "GENERAL ATOMICS AERONAUTICAL SYSTEMS, INC.",
+        "GENERAL ATOMICS AERONAUTICAL SYSTEMS INC",
+        "GENERAL ATOMICS ELECTROMAGNETICS",
+    ],
+}
+
+# Build reverse lookup: alias (uppercased) -> canonical name
+_ALIAS_TO_CANONICAL: dict[str, str] = {}
+for canonical, aliases in PARENT_COMPANY_ALIASES.items():
+    for alias in aliases:
+        _ALIAS_TO_CANONICAL[alias.upper()] = canonical
+    # Also map the canonical name to itself for consistent lookup
+    _ALIAS_TO_CANONICAL[canonical.upper()] = canonical
+
+
+def _normalize_contractor_name(name: str) -> str:
+    """Normalize a contractor name to its canonical parent company name."""
+    return _ALIAS_TO_CANONICAL.get(name.upper().strip(), name.strip())
+
 
 def _sanitize_uri(value: str) -> str:
     """Sanitize a string for use in a URI — replace invalid chars."""
@@ -94,18 +199,25 @@ class RDFTransformer:
         return g
 
     def _add_contractor(self, g: Graph, record: dict) -> URIRef | None:
-        """Add or reference a contractor individual."""
-        name = record.get("Recipient Name")
-        uei = record.get("Recipient UEI")
-        if not name:
+        """Add or reference a contractor individual.
+
+        Normalizes known parent company names so that divisions like
+        'NORTHROP GRUMMAN SYSTEMS CORPORATION' and 'NORTHROP GRUMMAN
+        MISSION SYSTEMS' resolve to a single 'NORTHROP GRUMMAN CORPORATION'
+        entity in the graph.
+        """
+        raw_name = record.get("Recipient Name")
+        if not raw_name:
             return None
 
-        # Use UEI for deduplication when available, otherwise slugify name
-        if uei:
-            key = _sanitize_uri(uei)
-        else:
-            key = _slugify(name)
+        # Normalize to canonical parent company name
+        name = _normalize_contractor_name(raw_name)
+
+        # Deduplicate by normalized name slug (not UEI) so divisions merge
+        key = _slugify(name)
         uri = DATA[f"contractor_{key}"]
+
+        uei = record.get("Recipient UEI")
 
         if key not in self._seen_contractors:
             self._seen_contractors.add(key)
