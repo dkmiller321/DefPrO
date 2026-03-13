@@ -11,41 +11,69 @@ export interface SparqlResponse {
   results: { bindings: SparqlBinding[] };
 }
 
-export interface ContractorRow {
-  name: string;
+// Deduplicated contractor row for the list table
+export interface ContractorSummary {
   uri: string;
-  totalAwards: number;
+  name: string;
+  ueis: string[];
+  awardCount: number;
   totalValue: number;
+  isSmallBusiness: boolean;
   capabilities: string[];
 }
 
-export interface CapabilityRow {
-  name: string;
-  uri: string;
-  contractorCount: number;
-  totalSpend: number;
-  fiscalYear: string;
+// Detailed contractor info for the detail panel
+export interface ContractorDetail {
+  capabilities: { name: string; spend: number }[];
+  topAwards: {
+    id: string;
+    amount: number;
+    description: string;
+    fiscalYear: string;
+  }[];
+  agencies: { name: string; spend: number }[];
+  spendByYear: { fiscalYear: string; spend: number }[];
 }
 
-export interface AwardRow {
-  id: string;
-  contractor: string;
-  agency: string;
-  amount: number;
+// Capability stats for the capabilities page
+export interface CapabilitySummary {
+  name: string;
+  totalSpend: number;
+  contractorCount: number;
+  awardCount: number;
+}
+
+// Concentration risk per capability
+export interface CapabilityConcentration {
   capability: string;
-  fiscalYear: string;
-  description: string;
+  topContractor: string;
+  topContractorSpend: number;
+  totalSpend: number;
+  share: number;
+}
+
+export interface HeatmapCell {
+  capability: string;
+  agency: string;
+  spend: number;
 }
 
 export interface NetworkNode {
   id: string;
   label: string;
   value: number;
-  capability: string;
+  group: string;
+  type: "contractor" | "agency";
 }
 
 export interface NetworkLink {
-  source: string;
-  target: string;
+  source: string | NetworkNode;
+  target: string | NetworkNode;
   value: number;
+}
+
+export interface NetworkFilters {
+  capability?: string;
+  agency?: string;
+  minValue?: number;
 }

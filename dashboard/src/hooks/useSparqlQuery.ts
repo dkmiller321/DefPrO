@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 interface QueryState<T> {
   data: T | null;
@@ -9,14 +9,14 @@ interface QueryState<T> {
 export function useSparqlQuery<T>(
   fetcher: () => Promise<T>,
   deps: unknown[] = []
-): QueryState<T> {
+): QueryState<T> & { refetch: () => void } {
   const [state, setState] = useState<QueryState<T>>({
     data: null,
     loading: true,
     error: null,
   });
 
-  useEffect(() => {
+  const execute = useCallback(() => {
     let cancelled = false;
     setState((s) => ({ ...s, loading: true, error: null }));
 
@@ -36,7 +36,14 @@ export function useSparqlQuery<T>(
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 
-  return state;
+  useEffect(() => execute(), [execute]);
+
+  const refetch = useCallback(() => {
+    execute();
+  }, [execute]);
+
+  return { ...state, refetch };
 }

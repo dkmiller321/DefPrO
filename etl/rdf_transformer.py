@@ -198,6 +198,13 @@ class RDFTransformer:
         g.bind("cco", CCO)
         return g
 
+    # Set-aside types that indicate small business status
+    _SB_SET_ASIDES = frozenset({
+        "SBA", "SBSA", "8A", "8AN", "HZC", "SDVOSBC", "SDVOSBS",
+        "WOSB", "EDWOSB", "VSA", "VSB", "HMP", "ISBEE",
+        "SBP",  # Small Business set-aside — partial
+    })
+
     def _add_contractor(self, g: Graph, record: dict) -> URIRef | None:
         """Add or reference a contractor individual.
 
@@ -226,10 +233,20 @@ class RDFTransformer:
             if uei:
                 g.add((uri, DP.ueiNumber, Literal(uei)))
 
+            # Determine small business status from set-aside type
+            set_aside = (record.get("Type of Set Aside") or "").strip().upper()
+            if set_aside in self._SB_SET_ASIDES:
+                g.add((uri, DP.isSmallBusiness, Literal(True)))
+
         return uri
 
     def _add_agency(self, g: Graph, record: dict) -> URIRef | None:
-        """Add or reference a government agency."""
+        """Add or reference a government agency.
+
+        Returns the most specific (subtier) agency URI so that awards link
+        to e.g. 'Defense Advanced Research Projects Agency' rather than the
+        generic 'Department of Defense' toptier.
+        """
         agency_name = record.get("Awarding Agency")
         if not agency_name:
             return None
@@ -242,16 +259,18 @@ class RDFTransformer:
             g.add((uri, RDF.type, DP.GovernmentAgency))
             g.add((uri, RDFS.label, Literal(agency_name)))
 
-            # Add sub-agency if different
-            sub_agency = record.get("Awarding Sub Agency")
-            if sub_agency and sub_agency != agency_name:
-                sub_key = _slugify(sub_agency)
-                sub_uri = DATA[f"agency_{sub_key}"]
-                if sub_key not in self._seen_agencies:
-                    self._seen_agencies.add(sub_key)
-                    g.add((sub_uri, RDF.type, DP.GovernmentAgency))
-                    g.add((sub_uri, RDFS.label, Literal(sub_agency)))
-                    g.add((sub_uri, DP.parentAgency, uri))
+        # Add sub-agency if different — outside toptier dedup block so every
+        # subtier is created regardless of whether the toptier was already seen.
+        sub_agency = record.get("Awarding Sub Agency")
+        if sub_agency and sub_agency != agency_name:
+            sub_key = _slugify(sub_agency)
+            sub_uri = DATA[f"agency_{sub_key}"]
+            if sub_key not in self._seen_agencies:
+                self._seen_agencies.add(sub_key)
+                g.add((sub_uri, RDF.type, DP.GovernmentAgency))
+                g.add((sub_uri, RDFS.label, Literal(sub_agency)))
+                g.add((sub_uri, DP.parentAgency, uri))
+            return sub_uri
 
         return uri
 
