@@ -35,3 +35,5 @@ fuseki-data/
 Thumbs.db
 
 .vercel
+.env.*
+!.env.example

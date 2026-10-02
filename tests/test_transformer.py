@@ -41,6 +41,9 @@ SAMPLE_RECORD = {
     "Contract Award Type": "Definitive Contract",
 }
 
+# Contractors are keyed by normalized name slug, not UEI, so divisions merge.
+SAMPLE_CONTRACTOR_URI = DATA["contractor_northrop_grumman_systems_corp"]
+
 
 class TestURIHelpers(unittest.TestCase):
     def test_sanitize_uri_removes_spaces(self):
@@ -126,14 +129,14 @@ class TestTransformAward(unittest.TestCase):
 
     def test_contractor_created(self):
         g = self.transformer.transform_award(SAMPLE_RECORD)
-        contractor_uri = DATA["contractor_JB7MVJ3U79N1"]
+        contractor_uri = SAMPLE_CONTRACTOR_URI
         self.assertIn((contractor_uri, RDF.type, DP.Contractor), g)
         self.assertIn((contractor_uri, DP.ueiNumber, Literal("JB7MVJ3U79N1")), g)
 
     def test_award_linked_to_contractor(self):
         g = self.transformer.transform_award(SAMPLE_RECORD)
         award_uri = DATA["award_W31P4Q-20-C-0001"]
-        contractor_uri = DATA["contractor_JB7MVJ3U79N1"]
+        contractor_uri = SAMPLE_CONTRACTOR_URI
         self.assertIn((award_uri, DP.awardedTo, contractor_uri), g)
 
     def test_agency_created(self):
@@ -194,7 +197,7 @@ class TestTransformAward(unittest.TestCase):
     def test_contractor_gets_capabilities(self):
         caps = ["http://defenseprocurement.io/ontology#ElectronicWarfare"]
         g = self.transformer.transform_award(SAMPLE_RECORD, capabilities=caps)
-        contractor_uri = DATA["contractor_JB7MVJ3U79N1"]
+        contractor_uri = SAMPLE_CONTRACTOR_URI
         self.assertIn((contractor_uri, DP.hasCapability, DP.ElectronicWarfare), g)
 
     def test_missing_award_id_returns_empty(self):
@@ -242,7 +245,7 @@ class TestTransformBatch(unittest.TestCase):
         transformer = RDFTransformer()
         g = transformer.transform_batch(records)
         # Count how many times the contractor type triple appears
-        contractor_uri = DATA["contractor_JB7MVJ3U79N1"]
+        contractor_uri = SAMPLE_CONTRACTOR_URI
         type_triples = list(g.triples((contractor_uri, RDF.type, DP.Contractor)))
         self.assertEqual(len(type_triples), 1, "Contractor should appear only once")
 
