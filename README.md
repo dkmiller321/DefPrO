@@ -9,6 +9,10 @@ USASpending.gov ──► ETL Pipeline ──► Apache Jena Fuseki ──► MC
                     (Python)         (SPARQL + OWL)         (TypeScript / React)
 ```
 
+## Why it exists
+
+Commercial procurement tools offer keyword search over flat award records. They don't model how contractors, capabilities, agencies and awards relate, so questions like "which small businesses already team with primes on hypersonics work?" take manual analysis. DefPrO stores those relationships in a knowledge graph, so one SPARQL query, or one plain-English question through the MCP server, can answer them. It uses only public USASpending.gov data.
+
 ## Architecture
 
 ```mermaid
@@ -241,7 +245,7 @@ Built with Vite, Tailwind CSS, Recharts, D3.js, and Lucide icons.
 ## Tests
 
 ```bash
-# Run all 138 tests
+# Run all 138 tests (all passing)
 python -m pytest tests/ -v
 
 # Run individual suites
@@ -265,4 +269,4 @@ python -m pytest tests/test_transformer.py -v            # 40 tests
 
 ## License
 
-Private repository. All rights reserved.
+[MIT](LICENSE) © 2026 Donald Miller
